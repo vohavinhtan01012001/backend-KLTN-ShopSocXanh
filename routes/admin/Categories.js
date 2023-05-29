@@ -37,19 +37,6 @@ router.get("/category", async (req, res) => {
 })
 
 
-//show category theo id
-router.get('/editCategory/:id', async (req, res) => {
-    const id = req.params.id;
-    const category = await TheLoai.findAll({ where: { id: id } });
-    try {
-        res.status(200).json({ category: category })
-    }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-})
-
 //update category
 router.put("/upload-category", async (req, res) => {
     const { id, ten, moTa } = req.body;
@@ -90,6 +77,46 @@ router.get('/show-product/:id', async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Internal server error' });
     }
+})
+
+//show category theo id 
+router.get('/show-category/:id', async (req, res) => {
+    const id = req.params.id;
+    const category = await TheLoai.findOne({ where: { id: id } });
+    try {
+        res.status(200).json({ category: category })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+router.delete('/delete-category/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const product = await SanPham.findAll({ where: { TheLoaiId: id } })
+
+        if (product.length > 0) {
+            res.status(400).json({ message: 'Success' });
+        }
+        else {
+            TheLoai.destroy({ where: { id: id } })
+            res.status(200).json({ message: 'Success' });
+        }
+    }
+    catch (err) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+
+    /*  TheLoai.destroy({ where: { id: id } });
+     try {
+         res.status(200).json({ message: 'Success' });
+     }
+     catch (err) {
+         console.error(err);
+         res.status(500).json({ message: 'Internal server error' });
+     } */
 })
 
 module.exports = router;

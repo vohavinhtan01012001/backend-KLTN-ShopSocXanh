@@ -2,9 +2,8 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer');
 const path = require('path');
-
-
-const { SanPham, TheLoai } = require('../../models');
+const { Sequelize } = require('sequelize');
+const { SanPham, TheLoai, KhuyenMai } = require('../../models');
 
 
 // Hàm tạo ID ngẫu nhiên
@@ -43,8 +42,16 @@ router.get("/product", async (req, res) => {
         const products = await SanPham.findAndCountAll({
             offset,
             limit,
-            include: [TheLoai]
+            include: [
+                {
+                    model: KhuyenMai,
+                },
+                {
+                    model: TheLoai
+                }
+            ]
         });
+
         const totalPages = Math.ceil(products.count / limit);
         res.json({
             status: 200,
@@ -73,7 +80,7 @@ const upload = multer({ storage: storage });
 
 router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { ten, giaTien, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId } = req.body;
+        const { ten, giaTien, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -82,25 +89,70 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
         const image2 = req.files['image2'][0].path.replace(/\\/g, '/');
         const image3 = req.files['image3'][0].path.replace(/\\/g, '/');
         const image4 = req.files['image4'][0].path.replace(/\\/g, '/');
-        // Create a new product in the database
-        await SanPham.create({
-            id: 'SP' + randomId,
-            ten: ten,
-            giaTien: giaTien,
-            soLuongM: soLuongM,
-            soLuongL: soLuongL,
-            soLuongXL: soLuongXL,
-            moTa: moTa,
-            TheLoaiId: TheLoaiId,
-            hinh: image1,
-            hinh2: image2,
-            hinh3: image3,
-            hinh4: image4,
-            KhuyenMaiId:1,
-            ThuongHieuId:1,
-            giaGiam:0
-        });
 
+        // Tính giá giảm
+        const disCount = await KhuyenMai.findOne({
+            where: { id: KhuyenMaiId }
+        })
+
+        let giaTri = 0;
+
+        if (disCount) {
+            giaTri = disCount.giamGia;
+        }
+
+        const giaTienNum = parseFloat(giaTien);
+        const giaTriNum = parseFloat(giaTri);
+
+        const giaGiam = parseFloat(giaTienNum - (giaTienNum * giaTriNum / 100));
+
+        //xet randomId bị trùng
+        let id = 'SP' + randomId;
+        const showId = await SanPham.findOne({ where: { id: 'SP' + randomId } })
+        if (showId) {
+            const idSanPham = generateRandomId(10)
+            id = "SP" + idSanPham;
+        }
+
+        //xét có dữ liệu khuyến mãi không 
+        // Create a new product in the database
+        if (KhuyenMaiId != 0) {
+            await SanPham.create({
+                id: id,
+                ten: ten,
+                giaTien: giaTien,
+                soLuongM: soLuongM,
+                soLuongL: soLuongL,
+                soLuongXL: soLuongXL,
+                moTa: moTa,
+                TheLoaiId: TheLoaiId,
+                hinh: image1,
+                hinh2: image2,
+                hinh3: image3,
+                hinh4: image4,
+                KhuyenMaiId: KhuyenMaiId,
+                ThuongHieuId: ThuongHieuId,
+                giaGiam: giaGiam,
+            });
+        }
+        else {
+            await SanPham.create({
+                id: id,
+                ten: ten,
+                giaTien: giaTien,
+                soLuongM: soLuongM,
+                soLuongL: soLuongL,
+                soLuongXL: soLuongXL,
+                moTa: moTa,
+                TheLoaiId: TheLoaiId,
+                hinh: image1,
+                hinh2: image2,
+                hinh3: image3,
+                hinh4: image4,
+                ThuongHieuId: ThuongHieuId,
+                giaGiam: giaGiam,
+            });
+        }
         res.status(200).json({ message: 'Success' });
     } catch (error) {
         console.error(error);

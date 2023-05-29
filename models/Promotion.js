@@ -15,9 +15,7 @@ module.exports = (sequelize, DataTypes) => {
         },
     });
     KhuyenMai.associate = (models) => {
-        KhuyenMai.hasMany(models.SanPham, {
-            onDelete: "cascade"
-        });
+        KhuyenMai.hasMany(models.SanPham);
     }
     return KhuyenMai;
 }
