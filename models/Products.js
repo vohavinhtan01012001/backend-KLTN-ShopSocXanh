@@ -45,8 +45,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
+        mauSac: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         moTa: {
             type: DataTypes.STRING(1000),
+            allowNull: true,
+        },
+        trangThai: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
     });

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { TheLoai, SanPham } = require('../../models');
+const { TheLoai, SanPham,KhuyenMai,ThuongHieu } = require('../../models');
 
 
 //show all categories
@@ -69,7 +69,17 @@ router.post("/add-category", async (req, res) => {
 router.get('/show-product/:id', async (req, res) => {
     const id = req.params.id;
     console.log(id);
-    const products = await SanPham.findAll({ include: [TheLoai], where: { TheLoaiId: id } });
+    const products = await SanPham.findAll({ include: [
+        {
+            model: KhuyenMai,
+        },
+        {
+            model: TheLoai
+        },
+        {
+            model: ThuongHieu
+        }
+    ], where: { TheLoaiId: id } });
     try {
         res.status(200).json({ products: products })
     }
@@ -98,7 +108,7 @@ router.delete('/delete-category/:id', async (req, res) => {
         const product = await SanPham.findAll({ where: { TheLoaiId: id } })
 
         if (product.length > 0) {
-            res.status(400).json({ message: 'Success' });
+            res.status(400).json({ message: 'Còn sản phẩm trong loại sản phẩm' });
         }
         else {
             TheLoai.destroy({ where: { id: id } })
@@ -108,15 +118,6 @@ router.delete('/delete-category/:id', async (req, res) => {
     catch (err) {
         res.status(500).json({ message: 'Internal server error' });
     }
-
-    /*  TheLoai.destroy({ where: { id: id } });
-     try {
-         res.status(200).json({ message: 'Success' });
-     }
-     catch (err) {
-         console.error(err);
-         res.status(500).json({ message: 'Internal server error' });
-     } */
 })
 
 module.exports = router;

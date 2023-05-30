@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { ThuongHieu, SanPham } = require('../../models');
+const { ThuongHieu, SanPham, KhuyenMai, TheLoai } = require('../../models');
 
 
 //show all trademarks
@@ -62,5 +62,61 @@ router.put("/upload-trademark", async (req, res) => {
     }
 })
 
+//show product theo id của trademark
+router.get('/show-product/:id', async (req, res) => {
+    const id = req.params.id;
+    const products = await SanPham.findAll({
+        include: [
+            {
+                model: KhuyenMai,
+            },
+            {
+                model: TheLoai
+            },
+            {
+                model: ThuongHieu
+            }
+        ], where: { ThuongHieuId: id }
+    });
+    try {
+        res.status(200).json({ products: products })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+
+//show trademark theo id 
+router.get('/show-trademark/:id', async (req, res) => {
+    const id = req.params.id;
+    const trademark = await ThuongHieu.findOne({ where: { id: id } });
+    try {
+        res.status(200).json({ trademark: trademark })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+router.delete('/delete-trademark/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const product = await SanPham.findAll({ where: { ThuongHieuId: id } })
+
+        if (product.length > 0) {
+            res.status(400).json({ message: 'Còn sản phẩm trong thương hiệu' });
+        }
+        else {
+            ThuongHieu.destroy({ where: { id: id } })
+            res.status(200).json({ message: 'Success' });
+        }
+    }
+    catch (err) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 module.exports = router;

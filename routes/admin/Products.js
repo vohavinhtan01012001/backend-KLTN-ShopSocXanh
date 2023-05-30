@@ -3,7 +3,7 @@ const router = express.Router()
 const multer = require('multer');
 const path = require('path');
 const { Sequelize } = require('sequelize');
-const { SanPham, TheLoai, KhuyenMai } = require('../../models');
+const { SanPham, TheLoai, KhuyenMai, ThuongHieu } = require('../../models');
 
 
 // Hàm tạo ID ngẫu nhiên
@@ -48,6 +48,9 @@ router.get("/product", async (req, res) => {
                 },
                 {
                     model: TheLoai
+                },
+                {
+                    model: ThuongHieu
                 }
             ]
         });
@@ -80,7 +83,7 @@ const upload = multer({ storage: storage });
 
 router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { ten, giaTien, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId } = req.body;
+        const { ten, giaTien, mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId, trangThai } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -121,6 +124,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                mauSac: mauSac,
                 soLuongM: soLuongM,
                 soLuongL: soLuongL,
                 soLuongXL: soLuongXL,
@@ -133,6 +137,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 KhuyenMaiId: KhuyenMaiId,
                 ThuongHieuId: ThuongHieuId,
                 giaGiam: giaGiam,
+                trangThai: trangThai,
             });
         }
         else {
@@ -140,6 +145,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                mauSac: mauSac,
                 soLuongM: soLuongM,
                 soLuongL: soLuongL,
                 soLuongXL: soLuongXL,
@@ -151,6 +157,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 hinh4: image4,
                 ThuongHieuId: ThuongHieuId,
                 giaGiam: giaGiam,
+                trangThai: trangThai,
             });
         }
         res.status(200).json({ message: 'Success' });
@@ -182,7 +189,7 @@ router.get("/product/:id", async (req, res) => {
 //update product 
 router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { id, ten, giaTien, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId } = req.body;
+        const { id, ten, giaTien,mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, giaGiam, trangThai } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -197,6 +204,7 @@ router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2
             id: 'SP' + randomId,
             ten: ten,
             giaTien: giaTien,
+            mauSac: mauSac,
             soLuongM: soLuongM,
             soLuongL: soLuongL,
             soLuongXL: soLuongXL,
@@ -205,7 +213,10 @@ router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2
             hinh: image1,
             hinh2: image2,
             hinh3: image3,
-            hinh4: image4
+            hinh4: image4,
+            ThuongHieuId: ThuongHieuId,
+            giaGiam: giaGiam,
+            trangThai: trangThai,
         }, { where: { id: id } });
         res.status(200).json({ message: 'Success' });
     } catch (error) {
