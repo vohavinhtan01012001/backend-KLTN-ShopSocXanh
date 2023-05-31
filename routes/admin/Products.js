@@ -18,6 +18,8 @@ function generateRandomId(length) {
 }
 const randomId = generateRandomId(10);
 
+
+//show all products
 router.get("/show-all", async (req, res) => {
     const products = await SanPham.findAll({ include: [TheLoai] });
     try {
@@ -189,7 +191,7 @@ router.get("/product/:id", async (req, res) => {
 //update product 
 router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { id, ten, giaTien,mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, giaGiam, trangThai } = req.body;
+        const { id, ten, giaTien, mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -199,9 +201,25 @@ router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2
         const image3 = req.files['image3'][0].path.replace(/\\/g, '/');
         const image4 = req.files['image4'][0].path.replace(/\\/g, '/');
 
+        // Tính giá giảm
+        const disCount = await KhuyenMai.findOne({
+            where: { id: KhuyenMaiId }
+        })
+
+        let giaTri = 0;
+
+        if (disCount) {
+            giaTri = disCount.giamGia;
+        }
+
+        const giaTienNum = parseFloat(giaTien);
+        const giaTriNum = parseFloat(giaTri);
+
+        const giaGiam = parseFloat(giaTienNum - (giaTienNum * giaTriNum / 100));
+
         // Create a new product in the database
         await SanPham.update({
-            id: 'SP' + randomId,
+            id: id,
             ten: ten,
             giaTien: giaTien,
             mauSac: mauSac,
