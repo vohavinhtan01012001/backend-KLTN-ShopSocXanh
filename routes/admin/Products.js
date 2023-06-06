@@ -188,18 +188,29 @@ router.get("/product/:id", async (req, res) => {
     }
 })
 
-//update product 
-router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
-    try {
-        const { id, ten, giaTien, mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
 
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ message: 'No files were uploaded' });
+//update product 
+router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { ten, giaTien, mauSac, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
+
+        /* if (!req.files || req.files.length === 0) {
+                    return res.status(400).json({ message: 'No files were uploaded' });
+                } */
+        const product = await SanPham.findOne({ where: { id: id } });
+        if (!product) {
+            return res.status(404).json({ message: 'Địa chỉ không hợp lệ' });
         }
-        const image1 = req.files['image1'][0].path.replace(/\\/g, '/');
-        const image2 = req.files['image2'][0].path.replace(/\\/g, '/');
-        const image3 = req.files['image3'][0].path.replace(/\\/g, '/');
-        const image4 = req.files['image4'][0].path.replace(/\\/g, '/');
+        const image1 = req.files['image1'] ? req.files['image1'][0].path.replace(/\\/g, '/') : product.hinh;
+        const image2 = req.files['image2'] ? req.files['image2'][0].path.replace(/\\/g, '/') : product.hinh2;
+        const image3 = req.files['image3'] ? req.files['image3'][0].path.replace(/\\/g, '/') : product.hinh3;
+        const image4 = req.files['image4'] ? req.files['image4'][0].path.replace(/\\/g, '/') : product.hinh4;
+
+        /*  const image1 = req.files['image1'][0].path.replace(/\\/g, '/');
+         const image2 = req.files['image2'][0].path.replace(/\\/g, '/');
+         const image3 = req.files['image3'][0].path.replace(/\\/g, '/');
+         const image4 = req.files['image4'][0].path.replace(/\\/g, '/'); */
 
         // Tính giá giảm
         const disCount = await KhuyenMai.findOne({
@@ -218,31 +229,56 @@ router.put('/upload-product', upload.fields([{ name: 'image1' }, { name: 'image2
         const giaGiam = parseFloat(giaTienNum - (giaTienNum * giaTriNum / 100));
 
         // Create a new product in the database
-        await SanPham.update({
-            id: id,
-            ten: ten,
-            giaTien: giaTien,
-            mauSac: mauSac,
-            soLuongM: soLuongM,
-            soLuongL: soLuongL,
-            soLuongXL: soLuongXL,
-            moTa: moTa,
-            TheLoaiId: TheLoaiId,
-            hinh: image1,
-            hinh2: image2,
-            hinh3: image3,
-            hinh4: image4,
-            ThuongHieuId: ThuongHieuId,
-            giaGiam: giaGiam,
-            trangThai: trangThai,
-        }, { where: { id: id } });
+        if (KhuyenMaiId == 0) {
+            await SanPham.update({
+                id: id,
+                ten: ten,
+                giaTien: giaTien,
+                mauSac: mauSac,
+                soLuongM: soLuongM,
+                soLuongL: soLuongL,
+                soLuongXL: soLuongXL,
+                moTa: moTa,
+                TheLoaiId: TheLoaiId,
+                hinh: image1,
+                hinh2: image2,
+                hinh3: image3,
+                hinh4: image4,
+                KhuyenMaiId: null,
+                ThuongHieuId: ThuongHieuId,
+                giaGiam: giaGiam,
+                trangThai: trangThai,
+            }, { where: { id: id } });
+
+        }
+        else {
+            await SanPham.update({
+                id: id,
+                ten: ten,
+                giaTien: giaTien,
+                mauSac: mauSac,
+                soLuongM: soLuongM,
+                soLuongL: soLuongL,
+                soLuongXL: soLuongXL,
+                moTa: moTa,
+                TheLoaiId: TheLoaiId,
+                hinh: image1,
+                hinh2: image2,
+                hinh3: image3,
+                hinh4: image4,
+                KhuyenMaiId: KhuyenMaiId,
+                ThuongHieuId: ThuongHieuId,
+                giaGiam: giaGiam,
+                trangThai: trangThai,
+            }, { where: { id: id } });
+
+        }
         res.status(200).json({ message: 'Success' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
-
 
 //delete  product
 router.delete('/delete-product', (req, res) => {
@@ -257,5 +293,20 @@ router.delete('/delete-product', (req, res) => {
     }
 })
 
+//update status product 
+router.put('/upload-status/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const { trangThai } = req.body;
+        // Create a new product in the database
+        await SanPham.update({
+            trangThai: trangThai,
+        }, { where: { id: id } });
+        res.status(200).json({ message: 'Success' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
 
 module.exports = router;

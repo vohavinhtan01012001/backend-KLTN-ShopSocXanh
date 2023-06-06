@@ -179,4 +179,63 @@ router.put("/upload-productPro/:id", async (req, res) => {
     }
 })
 
+//show product theo id cua promotion 
+router.get("/show-listProduct/:id", async (req, res) => {
+    const id = req.params.id;
+    const products = await SanPham.findAll({
+        include: [
+            {
+                model: TheLoai,
+            },
+            {
+                model: ThuongHieu,
+            },
+            {
+                model: KhuyenMai,
+
+            },
+        ],
+        where: {
+            KhuyenMaiId: id
+        }
+    },
+    );
+    try {
+        res.json({ products: products, status: 200 })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+})
+
+
+//update product có promotion
+router.put("/detele-idPromotion", async (req, res) => {
+    const { id } = req.body;
+    try {
+        const product = await SanPham.findOne({ where: { id: id } });
+        if (product) {
+            await SanPham.update({ KhuyenMaiId: null, giaGiam: product.giaTien }, { where: { id: id } });
+        };
+        res.status(200).json({ message: 'Success' });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+})
+
+
+//delete promotion
+router.delete('/delete-promotion/:id', (req, res) => {
+    const id = req.params.id;
+    try {
+        KhuyenMai.destroy({ where: { id: id } })
+        res.status(200).json({ message: 'Success' });
+    }
+    catch (err) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
 module.exports = router;

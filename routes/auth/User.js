@@ -26,6 +26,7 @@ router.post('/register', async (req, res) => {
     try {
         if (user) {
             res.json({ status: 400, message: 'Tài Khoản này đã tồn tại!' });
+            return;
         }
         bcrypt.hash(matKhau, 10).then((hash) => {
             NguoiDung.create({
@@ -81,5 +82,38 @@ router.get('/auth', validateToken, (req, res) => {
     res.json(req.user);
 })
 
+
+//show all user
+router.get('/show-all', async (req, res) => {
+    const users = await NguoiDung.findAll();
+    try {
+        res.status(200).json({ users: users })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+//Phân trang
+router.get("/user", async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = (page - 1) * limit;
+    try {
+        const users = await NguoiDung.findAndCountAll({
+            offset,
+            limit
+        });
+        const totalPages = Math.ceil(users.count / limit);
+        res.status(200).json({
+            totalPages,
+            users: users.rows
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 module.exports = router;
