@@ -3,7 +3,7 @@ const { verify } = require('jsonwebtoken');
 const validateToken = (req, res, next) => {
     const accessToken = req.header('accessToken');
     if (!accessToken) {
-        return res.json({ error: "User not logged in" });
+        return res.json({ status:401, message: "Vui lòng đăng nhập để tiếp tục!" });
     }
     try {
         const validToken = verify(accessToken, "importantsecret");

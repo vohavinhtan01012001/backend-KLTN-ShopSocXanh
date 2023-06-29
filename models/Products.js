@@ -45,17 +45,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
-        mauSac: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
         moTa: {
             type: DataTypes.STRING(1000),
             allowNull: true,
         },
         trangThai: {
             type: DataTypes.INTEGER,
-            allowNull: true,
+            allowNull: false,
+            defaultValue: 0,
         },
     });
 
@@ -63,6 +60,13 @@ module.exports = (sequelize, DataTypes) => {
         SanPham.belongsTo(models.TheLoai);
         SanPham.belongsTo(models.ThuongHieu);
         SanPham.belongsTo(models.KhuyenMai);
+        SanPham.belongsTo(models.MauSac);
+        SanPham.belongsTo(models.ChatLieu);
+        SanPham.hasMany(models.GioHang);
+        SanPham.hasMany(models.ChiTietDonHang);
+        SanPham.hasMany(models.YeuThich);
+        SanPham.hasMany(models.BinhLuan);
+        SanPham.hasMany(models.BinhLuan2);
       };
     return SanPham;
 }

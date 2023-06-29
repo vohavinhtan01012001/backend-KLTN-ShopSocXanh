@@ -7,7 +7,6 @@ const multer = require('multer');
 
 app.use(express.json());
 app.use(cors());
-
 //Upload images 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -22,6 +21,49 @@ app.use("/category", categoryRouter);
 const productRouter = require('./routes/frontend/Products');
 app.use("/product", productRouter);
 
+//cart
+const cartRouter = require('./routes/frontend/Cart');
+app.use("/cart", cartRouter);
+
+//order
+const orderRouter = require('./routes/frontend/Order');
+app.use("/order", orderRouter);
+
+//material
+const materialRouter = require('./routes/frontend/Materials');
+app.use("/marterial", materialRouter);
+
+//color
+const colorRouter = require('./routes/frontend/Colors');
+app.use("/color", colorRouter);
+
+//favourite
+const favouriteRouter = require('./routes/frontend/Favourite');
+app.use("/favourite", favouriteRouter);
+
+
+//evaluate
+const evaluateRouter = require('./routes/frontend/Evaluate');
+app.use("/evaluate", evaluateRouter);
+
+//comment
+const commentRouter = require('./routes/frontend/Comment');
+app.use("/comment", commentRouter);
+
+//comment2
+const comment2Router = require('./routes/frontend/Comment2');
+app.use("/comment2", comment2Router);
+
+//comment2
+const likeRouter = require('./routes/frontend/Like');
+app.use("/icon", likeRouter);
+
+//AdminEvaluate
+const adminEvaluateRouter = require('./routes/admin/Evaluate');
+app.use("/admin-evaluate", adminEvaluateRouter);
+
+
+
 //AdminCategory
 const adminCategoryRouter = require('./routes/admin/Categories');
 app.use("/admin-category", adminCategoryRouter);
@@ -30,6 +72,14 @@ app.use("/admin-category", adminCategoryRouter);
 const adminProductRouter = require('./routes/admin/Products');
 app.use("/admin-product", adminProductRouter);
 
+//AdminColor
+const adminColorRouter = require('./routes/admin/Colors');
+app.use("/admin-color", adminColorRouter);
+
+//AdminColor
+const adminMaterialRouter = require('./routes/admin/Materials');
+app.use("/admin-material", adminMaterialRouter);
+
 //AdminPromotion
 const adminPromotionRouter = require('./routes/admin/Promotions');
 app.use("/admin-promotion", adminPromotionRouter);
@@ -37,6 +87,21 @@ app.use("/admin-promotion", adminPromotionRouter);
 //AdminTrademark
 const adminTrademarkRouter = require('./routes/admin/Trademarks');
 app.use("/admin-trademark", adminTrademarkRouter);
+
+
+//AdminPermission
+const adminPermissionRouter = require('./routes/admin/Permissions');
+app.use("/admin-permission", adminPermissionRouter);
+
+
+//AdminOrder
+const adminOrderRouter = require('./routes/admin/Orders');
+app.use("/admin-order", adminOrderRouter);
+
+//VNPay
+const vnpayRouter = require('./routes/admin/Vnpay');
+app.use("/vnpay", vnpayRouter);
+
 
 //Auth
 const authRouter = require('./routes/auth/User');
