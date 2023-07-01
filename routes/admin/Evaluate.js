@@ -2,6 +2,18 @@ const express = require('express')
 const router = express.Router()
 const { DanhGia, SanPham } = require('../../models');
 
+router.get('/show-all', async (req, res) => {
+    const evaluates = await DanhGia.findAll();
+    try {
+        res.status(200).json({ evaluates: evaluates })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+
 router.get('/evaluate', async (req, res) => {
     const page = req.query.page || 1; // Trang hiện tại (mặc định là 1)
     const limit = req.query.limit || 5; // Số lượng phần tử trên mỗi trang (mặc định là 5)

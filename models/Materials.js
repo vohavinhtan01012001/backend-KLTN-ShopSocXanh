@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const ChatLieu = sequelize.define("ChatLieu", {
-        tenChatLieu: {
+        ten: {
             type: DataTypes.STRING,
             allowNull: false,
         },

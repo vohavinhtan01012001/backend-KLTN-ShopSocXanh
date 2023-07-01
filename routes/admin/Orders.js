@@ -77,9 +77,7 @@ router.post('/place-order', validateToken, async (req, res) => {
     try {
         if (req.user) {
             const userId = req.user.id;
-            /* $order->payment_mode = $request->payment_mode;
-            $order->payment_id = $request->payment_id;
-            $order->tracking_no = 'fundaecom'.rand(1111,9999); */
+     
             const cart = await GioHang.findAll({
                 include: [
                     {
@@ -187,9 +185,7 @@ router.post('/place-order/vnpay', validateToken, async (req, res) => {
     try {
         if (req.user) {
             const userId = req.user.id;
-            /* $order->payment_mode = $request->payment_mode;
-            $order->payment_id = $request->payment_id;
-            $order->tracking_no = 'fundaecom'.rand(1111,9999); */
+          
             const cart = await GioHang.findAll({
                 include: [
                     {

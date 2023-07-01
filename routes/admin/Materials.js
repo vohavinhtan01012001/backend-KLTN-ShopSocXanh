@@ -39,7 +39,7 @@ router.get("/material", async (req, res) => {
 //Add material
 router.post("/add-material", async (req, res) => {
     const { tenChatLieu, moTa } = req.body;
-    await ChatLieu.create({ tenChatLieu: tenChatLieu, moTa: moTa });
+    await ChatLieu.create({ ten: tenChatLieu, moTa: moTa });
     try {
         res.status(200).json({ message: 'Success' });
     }
@@ -53,7 +53,7 @@ router.post("/add-material", async (req, res) => {
 //update material
 router.put("/upload-material", async (req, res) => {
     const { id, tenChatLieu, moTa } = req.body;
-    await ChatLieu.update({ tenChatLieu: tenChatLieu, moTa: moTa }, { where: { id: id } });
+    await ChatLieu.update({ ten: tenChatLieu, moTa: moTa }, { where: { id: id } });
     try {
         res.status(200).json({ message: 'Success' });
     }

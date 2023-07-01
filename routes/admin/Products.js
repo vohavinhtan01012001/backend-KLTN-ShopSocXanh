@@ -2,8 +2,8 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer');
 const path = require('path');
-const { SanPham, TheLoai, KhuyenMai, ThuongHieu,MauSac,ChatLieu } = require('../../models');
-
+const { SanPham, TheLoai, KhuyenMai, ThuongHieu, MauSac, ChatLieu } = require('../../models');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 // Hàm tạo ID ngẫu nhiên
 function generateRandomId(length) {
@@ -19,7 +19,7 @@ const randomId = generateRandomId(10);
 
 
 //show all products
-router.get("/show-all", async (req, res) => {
+router.get("/show-all", adminAuth, async (req, res) => {
     const products = await SanPham.findAll({ include: [TheLoai] });
     try {
         if (products) {
@@ -35,7 +35,7 @@ router.get("/show-all", async (req, res) => {
 })
 
 //Phân trang
-router.get("/product", async (req, res) => {
+router.get("/product", adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -90,7 +90,7 @@ const upload = multer({ storage: storage });
 
 router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { ten, giaTien, MauSacId,ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId, trangThai } = req.body;
+        const { ten, giaTien, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId, trangThai } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -132,7 +132,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 ten: ten,
                 giaTien: giaTien,
                 MauSacId: MauSacId,
-                ChatLieuId:ChatLieuId,
+                ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,
                 soLuongL: soLuongL,
                 soLuongXL: soLuongXL,
@@ -154,7 +154,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 ten: ten,
                 giaTien: giaTien,
                 MauSacId: MauSacId,
-                ChatLieuId:ChatLieuId,
+                ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,
                 soLuongL: soLuongL,
                 soLuongXL: soLuongXL,
@@ -179,7 +179,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
 
 
 //show product id
-router.get("/product/:id", async (req, res) => {
+router.get("/product/:id", adminAuth, async (req, res) => {
     const id = req.params.id;
     const product = await SanPham.findAll({ where: { id: id }, include: [TheLoai] });
     try {
@@ -201,7 +201,7 @@ router.get("/product/:id", async (req, res) => {
 router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
         const id = req.params.id;
-        const { ten, giaTien, MauSacId,ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
+        const { ten, giaTien, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
 
         /* if (!req.files || req.files.length === 0) {
                     return res.status(400).json({ message: 'No files were uploaded' });
@@ -291,7 +291,7 @@ router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'im
 });
 
 //delete  product
-router.delete('/delete-product', (req, res) => {
+router.delete('/delete-product', adminAuth, (req, res) => {
     try {
         const { id } = req.body
         SanPham.destroy({ where: { id: id } });
@@ -304,7 +304,7 @@ router.delete('/delete-product', (req, res) => {
 })
 
 //update status product 
-router.put('/upload-status/:id', async (req, res) => {
+router.put('/upload-status/:id', adminAuth, async (req, res) => {
     try {
         const id = req.params.id
         const { trangThai } = req.body;
@@ -318,5 +318,95 @@ router.put('/upload-status/:id', async (req, res) => {
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
+
+//TÌm kiếm theo tên sản phẩm
+router.post('/search/:slug', adminAuth, async (req, res) => {
+    const slug = req.params.slug;
+    const { title, id } = req.body;
+
+    const productList = await SanPham.findAll({
+        include: [
+            {
+                model: KhuyenMai,
+            },
+            {
+                model: TheLoai
+            },
+            {
+                model: ThuongHieu
+            },
+            {
+                model: MauSac
+            },
+            {
+                model: ChatLieu
+            }
+        ]
+    });
+    let results = ''
+    if (slug != 0 && slug.trim() !== '') {
+        results = productList.filter(product =>
+            product.ten.toLowerCase().includes(slug.toLowerCase())
+        );
+        if (title) {
+            if (title == 1) {
+                results = results.filter(product =>
+                    product.TheLoaiId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title == 2) {
+                results = results.filter(product =>
+                    product.ThuongHieuId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title == 3) {
+                results = results.filter(product =>
+                    product.MauSacId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title == 4) {
+                results = results.filter(product =>
+                    product.ChatLieuId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+        }
+        return res.json({ status: 200, products: results });
+    }
+    if (slug == 0) {
+        if (title) {
+            if (title === 1) {
+                results = productList.filter(product =>
+                    product.TheLoaiId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title === 2) {
+                results = productList.filter(product =>
+                    product.ThuongHieuId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title === 3) {
+                results = productList.filter(product =>
+                    product.MauSacId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+            else if (title === 4) {
+                results = productList.filter(product =>
+                    product.ChatLieuId === id
+                );
+                return res.json({ status: 200, products: results });
+            }
+        }
+
+    }
+
+});
+
 
 module.exports = router;

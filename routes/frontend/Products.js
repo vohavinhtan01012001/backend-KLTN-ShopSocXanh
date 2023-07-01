@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { Op } = require('sequelize');
-const { SanPham, TheLoai, KhuyenMai, YeuThich } = require('../../models');
+const { SanPham, TheLoai, KhuyenMai, YeuThich, ThuongHieu, MauSac, ChatLieu } = require('../../models');
 const { validateToken } = require('../../middlewares/AuthMiddleware');
 
 router.get("/show-all", async (req, res) => {
@@ -81,6 +81,38 @@ router.get("/favourite", validateToken, async (req, res) => {
 
 })
 
+
+//TÌm kiếm theo tên sản phẩm
+router.get('/search/:slug', async (req, res) => {
+    const slug = req.params.slug;
+
+    const productList = await SanPham.findAll({
+        include: [
+            {
+                model: KhuyenMai,
+            },
+            {
+                model: TheLoai
+            },
+            {
+                model: ThuongHieu
+            },
+            {
+                model: MauSac
+            },
+            {
+                model: ChatLieu
+            }
+        ]
+    });
+    let results = ''
+    if (slug && slug.trim() !== '') {
+        results = productList.filter(product =>
+            product.ten.toLowerCase().includes(slug.toLowerCase())
+        );
+        return res.json({ status: 200, products: results });
+    }
+});
 
 
 

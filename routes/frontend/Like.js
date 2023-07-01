@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { Icon,NguoiDung } = require('../../models');
+const { Icon, NguoiDung } = require('../../models');
 const { validateToken } = require('../../middlewares/AuthMiddleware');
 
 router.post('/upload-icon', validateToken, async (req, res) => {
@@ -15,7 +15,6 @@ router.post('/upload-icon', validateToken, async (req, res) => {
                 SanPhamId: productId
             }
         });
-
         if (!existingIcon && icon !== 0) {
             await Icon.create({
                 icon: icon,
@@ -23,8 +22,16 @@ router.post('/upload-icon', validateToken, async (req, res) => {
                 NguoiDungId: userId,
                 SanPhamId: productId,
             });
-
-            res.json({ status: 200 });
+            return res.json({ status: 200, message: "Thêm thành công" });
+        } else if (existingIcon) {
+            if (icon !== 0) {
+                await Icon.destroy({ where: { id: existingIcon.id } });
+                return res.json({ status: 200, message: "Xóa thành công" });
+            } else {
+                return res.json({ status: 200, message: "Icon không tồn tại" });
+            }
+        } else {
+            return res.json({ status: 200, message: "Icon không tồn tại" });
         }
     }
     catch (err) {

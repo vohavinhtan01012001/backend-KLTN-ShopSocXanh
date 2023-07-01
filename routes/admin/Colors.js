@@ -39,7 +39,7 @@ router.get("/color", async (req, res) => {
 //Add color
 router.post("/add-color", async (req, res) => {
     const { tenMauSac, moTa } = req.body;
-    await MauSac.create({ tenMau: tenMauSac, moTa: moTa });
+    await MauSac.create({ ten: tenMauSac, moTa: moTa });
     try {
         res.status(200).json({ message: 'Success' });
     }
@@ -53,7 +53,7 @@ router.post("/add-color", async (req, res) => {
 //update color
 router.put("/upload-color", async (req, res) => {
     const { id, tenMau, moTa } = req.body;
-    await MauSac.update({ tenMau: tenMau, moTa: moTa }, { where: { id: id } });
+    await MauSac.update({ ten: tenMau, moTa: moTa }, { where: { id: id } });
     try {
         res.status(200).json({ message: 'Success' });
     }

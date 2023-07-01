@@ -2,10 +2,26 @@ const express = require('express')
 const router = express.Router()
 const { NguoiDung, VaiTro } = require('../../models');
 const bcrypt = require('bcrypt');
-
+const specialCharsRegex = /[!@#$%^&*(),.?":{}|<>]/g;
 const { sign } = require('jsonwebtoken');
 const { validateToken } = require('../../middlewares/AuthMiddleware');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
+const { OAuth2Client } = require('google-auth-library')
+const nodemailer = require('nodemailer');
+const GOOGLE_MAILER_CLIENT_ID = '258347555663-0m8j8ugaitn4e9d01saaln5f1v0iugb5.apps.googleusercontent.com'
+const GOOGLE_MAILER_CLIENT_SECRET = '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'
+const GOOGLE_MAILER_REFRESH_TOKEN =
+    '1//04IWIOA6diZFDCgYIARAAGAQSNwF-L9Irbq1ljrI7ktBkvcO9O7eQTFqDOtTWjc4oWDOM_OUEOE91-_e-4Iq6NgW0-o_rBAtYN3c'
+const ADMIN_EMAIL_ADDRESS = 'vinhtan129@gmail.com';
 
+const myOAuth2Client = new OAuth2Client(
+    GOOGLE_MAILER_CLIENT_ID,
+    GOOGLE_MAILER_CLIENT_SECRET
+)
+
+myOAuth2Client.setCredentials({
+    refresh_token: GOOGLE_MAILER_REFRESH_TOKEN
+})
 
 // Hàm tạo ID ngẫu nhiên
 function generateRandomId(length) {
@@ -36,6 +52,7 @@ router.post('/register', async (req, res) => {
             const idNguoiDung = generateRandomId(10)
             id = "US" + idNguoiDung;
         }
+
         bcrypt.hash(matKhau, 10).then((hash) => {
             NguoiDung.create({
                 id: id,
@@ -57,7 +74,7 @@ router.post('/register', async (req, res) => {
 });
 
 //đăng kí nhân viên
-router.post('/register-staff', async (req, res) => {
+router.post('/register-staff', adminAuth, async (req, res) => {
     console.log(req.body);
     const { hoTen, matKhau, email, diaChi, sdt } = req.body;
     const user = await NguoiDung.findOne({ where: { email: email } });
@@ -115,7 +132,7 @@ router.post('/login', async (req, res) => {
                     sdt: user.sdt,
                     phanQuyen: user.phanQuyen,
                     VaiTroId: user.VaiTroId
-                }, "importantsecret" /* expiresIn */);
+                }, "importantsecret");
                 res.json({ status: 200, accessToken: accessToken, message: "Đăng nhập thành công!" });
             }
         })
@@ -131,7 +148,7 @@ router.get('/auth', validateToken, (req, res) => {
 
 
 //show all user
-router.get('/show-all', async (req, res) => {
+router.get('/show-all', adminAuth, async (req, res) => {
     const users = await NguoiDung.findAll({ where: { phanQuyen: 0 } });
     try {
         res.status(200).json({ users: users })
@@ -143,7 +160,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //Phân trang
-router.get("/user", async (req, res) => {
+router.get("/user", adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -167,7 +184,7 @@ router.get("/user", async (req, res) => {
 
 
 //Phân trang staff
-router.get("/user-staff", async (req, res) => {
+router.get("/user-staff", adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -191,7 +208,7 @@ router.get("/user-staff", async (req, res) => {
 
 
 //show all user staff
-router.get('/show-all-staff', async (req, res) => {
+router.get('/show-all-staff', adminAuth, async (req, res) => {
     const users = await NguoiDung.findAll({ where: { phanQuyen: 2 } });
     try {
         res.status(200).json({ users: users })
@@ -203,7 +220,7 @@ router.get('/show-all-staff', async (req, res) => {
 })
 
 //update status user staff 
-router.put('/upload-status/:id', async (req, res) => {
+router.put('/upload-status/:id', adminAuth, async (req, res) => {
     try {
         const id = req.params.id
         const { trangThai } = req.body;
@@ -219,7 +236,7 @@ router.put('/upload-status/:id', async (req, res) => {
 });
 
 //delete  user
-router.delete('/delete-user/:id', (req, res) => {
+router.delete('/delete-user/:id', adminAuth, (req, res) => {
     try {
         const id = req.params.id;
         NguoiDung.destroy({ where: { id: id } });
@@ -227,6 +244,97 @@ router.delete('/delete-user/:id', (req, res) => {
     }
     catch (error) {
         console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+})
+
+router.post('/reset-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const checkMail = await NguoiDung.findOne({
+            where: {
+                email: email
+            }
+        })
+        if (checkMail) {
+            const myAccessTokenObject = await myOAuth2Client.getAccessToken()
+            const myAccessToken = myAccessTokenObject?.token
+            const transport = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    type: 'OAuth2',
+                    user: ADMIN_EMAIL_ADDRESS,
+                    clientId: GOOGLE_MAILER_CLIENT_ID,
+                    clientSecret: GOOGLE_MAILER_CLIENT_SECRET,
+                    refresh_token: GOOGLE_MAILER_REFRESH_TOKEN,
+                    accessToken: myAccessToken
+                }
+            })
+            const modifiedHash = checkMail.matKhau.replace(/\//g, '#');
+            console.log(modifiedHash)
+            const mailOptions = {
+                to: email, // Gửi đến ai?
+                subject: "Đổi mật khẩu trang shopsocxanh", // Tiêu đề email
+                html: `<html>
+                <head>
+                    <style>
+                        .button {
+                            display: inline-block;
+                            font-size: 16px;
+                            font-weight: bold;
+                            padding: 10px 20px;
+                            text-align: center;
+                            text-decoration: none;
+                            background-color: #4CAF50;
+                            color: white;
+                            border-radius: 4px;
+                            border: none;
+                            cursor: pointer;
+                        }
+                        a{
+                            color: white
+                        }
+                    </style>
+                </head>
+                <body>
+                    <p>Xin chào!</p>
+                    <p>Bạn có thể nhấn vào nút bên dưới để đổi mật khẩu:</p>
+                    <a class="button" href="http://localhost:3000/reset/${modifiedHash}">Đổi mật khẩu</a>
+                </body>
+                </html>` // Nội dung email
+            }
+            await transport.sendMail(mailOptions)
+            return res.json({ status: 200 })
+        }
+        else {
+            return res.json({ status: 400 })
+
+        }
+
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+})
+
+
+router.post('/new-password', async (req, res) => {
+    const { slug, password } = req.body;
+    try {
+        const user = await NguoiDung.findOne({ where: { matKhau: slug } });
+        if (user) {
+            bcrypt.hash(password, 10).then((hash) => {
+                NguoiDung.update({
+                    matKhau: hash,
+                }, { where: { id: user.id } });
+                return res.json({ status: 200, message: "Đổi mật khẩu thành công!" });
+            })
+        }
+        else {
+            return res.json({ status: 404, message: "Không tìm thấy tài khoản" })
+        }
+    } catch (error) {
         res.status(500).json({ message: 'Lỗi server' });
     }
 })

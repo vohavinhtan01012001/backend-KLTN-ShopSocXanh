@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const MauSac = sequelize.define("MauSac", {
-        tenMau: {
+        ten: {
             type: DataTypes.STRING,
             allowNull: false,
         },
