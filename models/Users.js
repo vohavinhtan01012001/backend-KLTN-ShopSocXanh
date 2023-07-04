@@ -39,10 +39,18 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: "cascade"
         });
         NguoiDung.hasMany(models.DonHang);
-        NguoiDung.hasMany(models.YeuThich);
-        NguoiDung.hasMany(models.DanhGia);
-        NguoiDung.hasMany(models.BinhLuan);
-        NguoiDung.hasMany(models.BinhLuan2);
+        NguoiDung.hasMany(models.YeuThich, {
+            onDelete: "cascade"
+        });
+        NguoiDung.hasMany(models.DanhGia, {
+            onDelete: "cascade"
+        });
+        NguoiDung.hasMany(models.BinhLuan, {
+            onDelete: "cascade"
+        });
+        NguoiDung.hasMany(models.BinhLuan2, {
+            onDelete: "cascade"
+        });
     };
 
     return NguoiDung;

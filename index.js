@@ -98,6 +98,10 @@ app.use("/admin-permission", adminPermissionRouter);
 const adminOrderRouter = require('./routes/admin/Orders');
 app.use("/admin-order", adminOrderRouter);
 
+//AdminDashboard
+const adminDashboardRouter = require('./routes/admin/Dashboard');
+app.use("/admin-dashboard", adminDashboardRouter);
+
 //VNPay
 const vnpayRouter = require('./routes/admin/Vnpay');
 app.use("/vnpay", vnpayRouter);

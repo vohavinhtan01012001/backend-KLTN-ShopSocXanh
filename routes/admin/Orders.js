@@ -128,6 +128,7 @@ router.post('/place-order', validateToken, async (req, res) => {
                 diaChi: diaChi,
                 ghiChu: ghiChu,
                 tongTien: sumPriceOrder,
+                thanhToanTienMat: 1,
             })
 
             await ChiTietDonHang.bulkCreate(orderItems.map(item => ({ DonHangId: order.id, ...item })));

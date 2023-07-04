@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     BinhLuan.associate = (models) => {
-        BinhLuan.belongsTo(models.NguoiDung);
+        BinhLuan.belongsTo(models.NguoiDung)
         BinhLuan.belongsTo(models.SanPham);
         BinhLuan.hasMany(models.BinhLuan2);
     }

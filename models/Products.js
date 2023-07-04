@@ -62,11 +62,19 @@ module.exports = (sequelize, DataTypes) => {
         SanPham.belongsTo(models.KhuyenMai);
         SanPham.belongsTo(models.MauSac);
         SanPham.belongsTo(models.ChatLieu);
-        SanPham.hasMany(models.GioHang);
+        SanPham.hasMany(models.GioHang,{
+            onDelete: "cascade"
+        });
         SanPham.hasMany(models.ChiTietDonHang);
-        SanPham.hasMany(models.YeuThich);
-        SanPham.hasMany(models.BinhLuan);
-        SanPham.hasMany(models.BinhLuan2);
+        SanPham.hasMany(models.YeuThich,{
+            onDelete: "cascade"
+        });
+        SanPham.hasMany(models.BinhLuan,{
+            onDelete: "cascade"
+        });
+        SanPham.hasMany(models.BinhLuan2,{
+            onDelete: "cascade"
+        });
       };
     return SanPham;
 }

@@ -270,7 +270,7 @@ router.post('/reset-password', async (req, res) => {
                     accessToken: myAccessToken
                 }
             })
-            const modifiedHash = checkMail.matKhau.replace(/\//g, '#');
+            const modifiedHash = checkMail.matKhau.replace(/\//g, '-');
             console.log(modifiedHash)
             const mailOptions = {
                 to: email, // Gửi đến ai?
@@ -321,8 +321,11 @@ router.post('/reset-password', async (req, res) => {
 
 router.post('/new-password', async (req, res) => {
     const { slug, password } = req.body;
+    const modifiedHash = slug.replace(/-/g, '/')
+    console.log(slug)
+    console.log(modifiedHash)
     try {
-        const user = await NguoiDung.findOne({ where: { matKhau: slug } });
+        const user = await NguoiDung.findOne({ where: { matKhau: modifiedHash } });
         if (user) {
             bcrypt.hash(password, 10).then((hash) => {
                 NguoiDung.update({
