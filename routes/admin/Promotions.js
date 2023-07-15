@@ -3,6 +3,7 @@ const router = express.Router()
 const path = require('path');
 const { KhuyenMai, SanPham, TheLoai, ThuongHieu } = require('../../models');
 const { Op } = require('sequelize');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 
 // Hàm tạo ID ngẫu nhiên
@@ -19,7 +20,7 @@ const randomId = generateRandomId(10);
 
 
 //show all promotions
-router.get('/show-all', async (req, res) => {
+router.get('/show-all',adminAuth, async (req, res) => {
     const promotions = await KhuyenMai.findAll();
     try {
         res.status(200).json({ promotions: promotions })
@@ -31,7 +32,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //show phân trang promotion
-router.get("/promotion", async (req, res) => {
+router.get("/promotion",adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -53,7 +54,7 @@ router.get("/promotion", async (req, res) => {
 })
 
 //Add promotion
-router.post("/add-promotion", async (req, res) => {
+router.post("/add-promotion",adminAuth, async (req, res) => {
     const { tieuDe, giamGia } = req.body;
     let id = 'KM' + randomId;
     const showId = await KhuyenMai.findOne({ where: { id: 'KM' + randomId } })
@@ -72,7 +73,7 @@ router.post("/add-promotion", async (req, res) => {
 })
 
 //update promotion
-router.put("/upload-promotion", async (req, res) => {
+router.put("/upload-promotion",adminAuth, async (req, res) => {
     const { id, tieuDe, giamGia } = req.body;
     try {
 
@@ -104,7 +105,7 @@ router.put("/upload-promotion", async (req, res) => {
 })
 
 //show all product không có promotionId đã chọn
-router.get("/show-product/:id", async (req, res) => {
+router.get("/show-product/:id",adminAuth, async (req, res) => {
     const id = req.params.id;
     const products = await SanPham.findAll({
         include: [
@@ -136,7 +137,7 @@ router.get("/show-product/:id", async (req, res) => {
 })
 
 //show promotion theo id 
-router.get('/show-promotion/:id', async (req, res) => {
+router.get('/show-promotion/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const promotion = await KhuyenMai.findOne({ where: { id: id } });
     try {
@@ -149,7 +150,7 @@ router.get('/show-promotion/:id', async (req, res) => {
 })
 
 //update product có promotion
-router.put("/upload-productPro/:id", async (req, res) => {
+router.put("/upload-productPro/:id",adminAuth, async (req, res) => {
     const KhuyenMaiId = req.params.id;
     const { idProduct } = req.body;
     try {
@@ -180,7 +181,7 @@ router.put("/upload-productPro/:id", async (req, res) => {
 })
 
 //show product theo id cua promotion 
-router.get("/show-listProduct/:id", async (req, res) => {
+router.get("/show-listProduct/:id",adminAuth, async (req, res) => {
     const id = req.params.id;
     const products = await SanPham.findAll({
         include: [
@@ -210,7 +211,7 @@ router.get("/show-listProduct/:id", async (req, res) => {
 
 
 //update product có promotion
-router.put("/detele-idPromotion", async (req, res) => {
+router.put("/detele-idPromotion",adminAuth, async (req, res) => {
     const { id } = req.body;
     try {
         const product = await SanPham.findOne({ where: { id: id } });

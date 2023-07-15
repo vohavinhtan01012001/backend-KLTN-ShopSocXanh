@@ -2,21 +2,9 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 const { SanPham, TheLoai, KhuyenMai, ThuongHieu, MauSac, ChatLieu } = require('../../models');
 const { adminAuth } = require('../../middlewares/AuthAdmin');
-
-// Hàm tạo ID ngẫu nhiên
-function generateRandomId(length) {
-    let result = '';
-    const characters = '0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-const randomId = generateRandomId(10);
-
 
 //show all products
 router.get("/show-all", adminAuth, async (req, res) => {
@@ -88,9 +76,9 @@ const storage = multer.diskStorage({
 // Khởi tạo multer với cấu hình
 const upload = multer({ storage: storage });
 
-router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
+router.post('/add-product', adminAuth, upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
-        const { ten, giaTien, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId, trangThai } = req.body;
+        const { ten, giaTien, gioiTinh, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, KhuyenMaiId, ThuongHieuId, trangThai } = req.body;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded' });
@@ -116,21 +104,28 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
 
         const giaGiam = parseFloat(giaTienNum - (giaTienNum * giaTriNum / 100));
 
-        //xet randomId bị trùng
-        let id = 'SP' + randomId;
-        const showId = await SanPham.findOne({ where: { id: 'SP' + randomId } })
-        if (showId) {
-            const idSanPham = generateRandomId(10)
-            id = "SP" + idSanPham;
+        const theLoaiId = TheLoaiId.toString().padStart(3, '0');
+        const thuongHieuId = ThuongHieuId.toString().padStart(3, '0');
+
+        const lastProduct = await SanPham.findOne({
+            order: [['id', 'DESC']],
+        });
+        let id = `SP0000${theLoaiId}${thuongHieuId}`;
+        if (lastProduct) {
+            const lastProductId = lastProduct.id[2] + lastProduct.id[3] + lastProduct.id[4] + lastProduct.id[5];
+            const ids = parseInt(lastProductId) + 1;
+            const soThuTu = ids.toString().padStart(4, '0');
+
+            id = `SP${soThuTu}${theLoaiId}${thuongHieuId}`;
         }
 
         //xét có dữ liệu khuyến mãi không 
-        // Create a new product in the database
         if (KhuyenMaiId != 0) {
             await SanPham.create({
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                gioiTinh: gioiTinh,
                 MauSacId: MauSacId,
                 ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,
@@ -153,6 +148,7 @@ router.post('/add-product', upload.fields([{ name: 'image1' }, { name: 'image2' 
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                gioiTinh: gioiTinh,
                 MauSacId: MauSacId,
                 ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,
@@ -198,10 +194,10 @@ router.get("/product/:id", adminAuth, async (req, res) => {
 
 
 //update product 
-router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
+router.put('/upload-product/:id', adminAuth, upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }, { name: 'image4' }]), async (req, res) => {
     try {
         const id = req.params.id;
-        const { ten, giaTien, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
+        const { ten, giaTien, gioiTinh, MauSacId, ChatLieuId, soLuongM, soLuongL, soLuongXL, moTa, TheLoaiId, ThuongHieuId, KhuyenMaiId, trangThai } = req.body;
 
         /* if (!req.files || req.files.length === 0) {
                     return res.status(400).json({ message: 'No files were uploaded' });
@@ -242,6 +238,7 @@ router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'im
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                gioiTinh: gioiTinh,
                 MauSacId: MauSacId,
                 ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,
@@ -265,6 +262,7 @@ router.put('/upload-product/:id', upload.fields([{ name: 'image1' }, { name: 'im
                 id: id,
                 ten: ten,
                 giaTien: giaTien,
+                gioiTinh: gioiTinh,
                 MauSacId: MauSacId,
                 ChatLieuId: ChatLieuId,
                 soLuongM: soLuongM,

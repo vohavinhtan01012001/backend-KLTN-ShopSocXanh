@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
+        gioiTinh: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
         moTa: {
             type: DataTypes.STRING(1000),
             allowNull: true,
@@ -62,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
         SanPham.belongsTo(models.KhuyenMai);
         SanPham.belongsTo(models.MauSac);
         SanPham.belongsTo(models.ChatLieu);
+        SanPham.belongsTo(models.KieuDang);
         SanPham.hasMany(models.GioHang,{
             onDelete: "cascade"
         });

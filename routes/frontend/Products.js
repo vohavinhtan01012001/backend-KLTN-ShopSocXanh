@@ -53,7 +53,7 @@ router.get("/viewproductdetail/:category_slug/:product_slug", async (req, res) =
     const category = await TheLoai.findOne({ where: { ten: category_slug } });
     try {
         if (category) {
-            const product = await SanPham.findOne({ include: [{ model: TheLoai }, { model: KhuyenMai }], where: { TheLoaiId: category.id, id: product_slug, trangThai: 1 } })
+            const product = await SanPham.findOne({ include: [{ model: TheLoai }, { model: KhuyenMai },{ model: MauSac },{ model: ChatLieu }], where: { TheLoaiId: category.id, id: product_slug, trangThai: 1 } })
             res.status(200).json({ products: product })
         }
     }

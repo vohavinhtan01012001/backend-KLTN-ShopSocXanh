@@ -1,10 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const { TheLoai, SanPham,KhuyenMai,ThuongHieu } = require('../../models');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 
 //show all categories
-router.get('/show-all', async (req, res) => {
+router.get('/show-all',adminAuth, async (req, res) => {
     const categories = await TheLoai.findAll();
     try {
         res.status(200).json({ categories: categories })
@@ -16,7 +17,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //Phân trang
-router.get("/category", async (req, res) => {
+router.get("/category",adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -38,7 +39,7 @@ router.get("/category", async (req, res) => {
 
 
 //update category
-router.put("/upload-category", async (req, res) => {
+router.put("/upload-category",adminAuth, async (req, res) => {
     const { id, ten, moTa } = req.body;
     await TheLoai.update({ ten: ten, moTa: moTa }, { where: { id: id } });
     try {
@@ -52,7 +53,7 @@ router.put("/upload-category", async (req, res) => {
 
 
 //Add category
-router.post("/add-category", async (req, res) => {
+router.post("/add-category",adminAuth, async (req, res) => {
     const { ten, moTa } = req.body;
     await TheLoai.create({ ten: ten, moTa: moTa });
     try {
@@ -66,7 +67,7 @@ router.post("/add-category", async (req, res) => {
 
 
 //show product theo id của category
-router.get('/show-product/:id', async (req, res) => {
+router.get('/show-product/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     console.log(id);
     const products = await SanPham.findAll({ include: [
@@ -90,7 +91,7 @@ router.get('/show-product/:id', async (req, res) => {
 })
 
 //show category theo id 
-router.get('/show-category/:id', async (req, res) => {
+router.get('/show-category/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const category = await TheLoai.findOne({ where: { id: id } });
     try {
@@ -102,7 +103,7 @@ router.get('/show-category/:id', async (req, res) => {
     }
 })
 
-router.delete('/delete-category/:id', async (req, res) => {
+router.delete('/delete-category/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     try {
         const product = await SanPham.findAll({ where: { TheLoaiId: id } })

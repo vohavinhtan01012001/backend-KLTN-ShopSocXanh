@@ -1,12 +1,12 @@
+
 const express = require('express')
 const router = express.Router()
 const moment = require('moment');
 const { DonHang, ChiTietDonHang, GioHang, SanPham, NguoiDung } = require('../../models');
 const { validateToken } = require('../../middlewares/AuthMiddleware');
 const nodemailer = require('nodemailer');
-const { OAuth2Client } = require('google-auth-library')
-const axios = require('axios');
-const CryptoJS = require('crypto-js');
+const { OAuth2Client } = require('google-auth-library');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 const GOOGLE_MAILER_CLIENT_ID = '258347555663-0m8j8ugaitn4e9d01saaln5f1v0iugb5.apps.googleusercontent.com'
 const GOOGLE_MAILER_CLIENT_SECRET = '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'
@@ -24,7 +24,7 @@ myOAuth2Client.setCredentials({
 })
 
 //show all orders
-router.get('/show-all', async (req, res) => {
+router.get('/show-all',adminAuth, async (req, res) => {
     const orders = await DonHang.findAll();
     try {
         res.status(200).json({ orders: orders })
@@ -35,7 +35,7 @@ router.get('/show-all', async (req, res) => {
     }
 })
 
-router.get('/show/order/:id', async (req, res) => {
+router.get('/show/order/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const order = await DonHang.findOne({ where: { id: id } });
     try {
@@ -48,7 +48,7 @@ router.get('/show/order/:id', async (req, res) => {
 })
 
 //Phân trang
-router.get("/order", async (req, res) => {
+router.get("/order",adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -77,7 +77,7 @@ router.post('/place-order', validateToken, async (req, res) => {
     try {
         if (req.user) {
             const userId = req.user.id;
-     
+
             const cart = await GioHang.findAll({
                 include: [
                     {
@@ -128,7 +128,6 @@ router.post('/place-order', validateToken, async (req, res) => {
                 diaChi: diaChi,
                 ghiChu: ghiChu,
                 tongTien: sumPriceOrder,
-                thanhToanTienMat: 1,
             })
 
             await ChiTietDonHang.bulkCreate(orderItems.map(item => ({ DonHangId: order.id, ...item })));
@@ -186,7 +185,7 @@ router.post('/place-order/vnpay', validateToken, async (req, res) => {
     try {
         if (req.user) {
             const userId = req.user.id;
-          
+
             const cart = await GioHang.findAll({
                 include: [
                     {
@@ -291,7 +290,7 @@ router.post('/place-order/vnpay', validateToken, async (req, res) => {
 
 
 //show all ordersItems
-router.get('/show-all/orderItems/:id', async (req, res) => {
+router.get('/show-all/orderItems/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const ordersItems = await ChiTietDonHang.findAll({ where: { DonHangId: id } });
     try {
@@ -304,7 +303,7 @@ router.get('/show-all/orderItems/:id', async (req, res) => {
 })
 
 //Phân trang
-router.get("/orderItems/:id", async (req, res) => {
+router.get("/orderItems/:id",adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -335,7 +334,7 @@ router.get("/orderItems/:id", async (req, res) => {
 
 
 //update status
-router.put("/upload-status/:id", async (req, res) => {
+router.put("/upload-status/:id",adminAuth, async (req, res) => {
     const id = req.params.id;
     console.log(id);
     const order = await DonHang.findOne({ include: [NguoiDung], where: { id: id } })
@@ -394,7 +393,7 @@ router.put("/upload-status/:id", async (req, res) => {
     }
 })
 
-router.put("/upload-delivery/:id", async (req, res) => {
+router.put("/upload-delivery/:id",adminAuth, async (req, res) => {
     const id = req.params.id;
     console.log(id);
     const order = await DonHang.findOne({ include: [NguoiDung], where: { id: id } })
@@ -450,5 +449,87 @@ router.put("/upload-delivery/:id", async (req, res) => {
         res.status(500).json({ message: 'Lỗi server' });
     }
 })
+
+
+//show all status xác nhận
+router.get('/show-status',adminAuth, async (req, res) => {
+    const orders = await DonHang.findAll({ where: { trangThai: 0, huyDon: 0 } });
+    try {
+        res.status(200).json({ orders: orders })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+
+//show all đã xác nhận chưa giao hàng
+router.get('/show-transport',adminAuth, async (req, res) => {
+    const orders = await DonHang.findAll({ where: { trangThai: 1, giaoHang: 0, huyDon: 0 } });
+    try {
+        res.status(200).json({ orders: orders })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+//show all đã giao hàng
+router.get('/show-delivery',adminAuth, async (req, res) => {
+    const orders = await DonHang.findAll({ where: { trangThai: 1, giaoHang: 1, huyDon: 0 } });
+    try {
+        res.status(200).json({ orders: orders })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+//show all đã hủy
+router.get('/show-cancel',adminAuth, async (req, res) => {
+    const orders = await DonHang.findAll({ where: { huyDon: 1 } });
+    try {
+        res.status(200).json({ orders: orders })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+
+//show all đã hủy
+router.put('/upload-cancel',adminAuth, async (req, res) => {
+    const { id } = req.body;
+    try {
+        const order = await DonHang.findOne({ where: { id: id } })
+        if (order) {
+            await DonHang.update({ huyDon: 1 }, { where: { id: order.id, giaoHang: 0 } });
+            return res.json({ status: 200, message: "Hủy thành công!", order: order });
+        }
+        return res.json({ status: 404, message: "Không tìm thấy đơn hàng!" });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+router.post('/search',adminAuth, async (req, res) => {
+    const id = req.body.id;
+    const orders = await DonHang.findAll()
+    let results = ''
+    if (id != 0 && id.trim() !== '') {
+        results = orders.filter(order =>
+            order.id == id
+        );
+        return res.json({ status: 200, orders: results });
+    }
+
+
+});
 
 module.exports = router;

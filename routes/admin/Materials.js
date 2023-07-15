@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const { ChatLieu } = require('../../models');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 //show all materials
-router.get('/show-all', async (req, res) => {
+router.get('/show-all', adminAuth, async (req, res) => {
     const materials = await ChatLieu.findAll();
     try {
         res.status(200).json({ materials: materials })
@@ -15,7 +16,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //Phân trang
-router.get("/material", async (req, res) => {
+router.get("/material", adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -37,7 +38,7 @@ router.get("/material", async (req, res) => {
 
 
 //Add material
-router.post("/add-material", async (req, res) => {
+router.post("/add-material", adminAuth, async (req, res) => {
     const { tenChatLieu, moTa } = req.body;
     await ChatLieu.create({ ten: tenChatLieu, moTa: moTa });
     try {
@@ -51,7 +52,7 @@ router.post("/add-material", async (req, res) => {
 
 
 //update material
-router.put("/upload-material", async (req, res) => {
+router.put("/upload-material", adminAuth, async (req, res) => {
     const { id, tenChatLieu, moTa } = req.body;
     await ChatLieu.update({ ten: tenChatLieu, moTa: moTa }, { where: { id: id } });
     try {

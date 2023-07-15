@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
 
     ChiTietDonHang.associate = (models) => {
         ChiTietDonHang.belongsTo(models.SanPham);
+        ChiTietDonHang.belongsTo(models.DonHang);
     }
 
     return ChiTietDonHang;

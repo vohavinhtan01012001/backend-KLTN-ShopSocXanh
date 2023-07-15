@@ -37,6 +37,11 @@ app.use("/marterial", materialRouter);
 const colorRouter = require('./routes/frontend/Colors');
 app.use("/color", colorRouter);
 
+//style
+const styleRouter = require('./routes/frontend/Styles');
+app.use("/style", styleRouter);
+
+
 //favourite
 const favouriteRouter = require('./routes/frontend/Favourite');
 app.use("/favourite", favouriteRouter);
@@ -62,8 +67,6 @@ app.use("/icon", likeRouter);
 const adminEvaluateRouter = require('./routes/admin/Evaluate');
 app.use("/admin-evaluate", adminEvaluateRouter);
 
-
-
 //AdminCategory
 const adminCategoryRouter = require('./routes/admin/Categories');
 app.use("/admin-category", adminCategoryRouter);
@@ -75,6 +78,10 @@ app.use("/admin-product", adminProductRouter);
 //AdminColor
 const adminColorRouter = require('./routes/admin/Colors');
 app.use("/admin-color", adminColorRouter);
+
+//adminStyle
+const adminStyleRouter = require('./routes/admin/Styles');
+app.use("/admin-style", adminStyleRouter);
 
 //AdminColor
 const adminMaterialRouter = require('./routes/admin/Materials');

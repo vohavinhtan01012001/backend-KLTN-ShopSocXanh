@@ -1,10 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const { ThuongHieu, SanPham, KhuyenMai, TheLoai } = require('../../models');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 
 //show all trademarks
-router.get('/show-all', async (req, res) => {
+router.get('/show-all',adminAuth, async (req, res) => {
     const trademarks = await ThuongHieu.findAll();
     try {
         res.status(200).json({ trademarks: trademarks })
@@ -16,7 +17,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //Phân trang
-router.get("/trademark", async (req, res) => {
+router.get("/trademark",adminAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -37,7 +38,7 @@ router.get("/trademark", async (req, res) => {
 })
 
 //Add trademark
-router.post("/add-trademark", async (req, res) => {
+router.post("/add-trademark",adminAuth, async (req, res) => {
     const { ten, moTa } = req.body;
     await ThuongHieu.create({ ten: ten, moTa: moTa });
     try {
@@ -50,7 +51,7 @@ router.post("/add-trademark", async (req, res) => {
 })
 
 //update trademark
-router.put("/upload-trademark", async (req, res) => {
+router.put("/upload-trademark",adminAuth, async (req, res) => {
     const { id, ten, moTa } = req.body;
     await ThuongHieu.update({ ten: ten, moTa: moTa }, { where: { id: id } });
     try {
@@ -63,7 +64,7 @@ router.put("/upload-trademark", async (req, res) => {
 })
 
 //show product theo id của trademark
-router.get('/show-product/:id', async (req, res) => {
+router.get('/show-product/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const products = await SanPham.findAll({
         include: [
@@ -89,7 +90,7 @@ router.get('/show-product/:id', async (req, res) => {
 
 
 //show trademark theo id 
-router.get('/show-trademark/:id', async (req, res) => {
+router.get('/show-trademark/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     const trademark = await ThuongHieu.findOne({ where: { id: id } });
     try {
@@ -101,7 +102,7 @@ router.get('/show-trademark/:id', async (req, res) => {
     }
 })
 
-router.delete('/delete-trademark/:id', async (req, res) => {
+router.delete('/delete-trademark/:id',adminAuth, async (req, res) => {
     const id = req.params.id;
     try {
         const product = await SanPham.findAll({ where: { ThuongHieuId: id } })

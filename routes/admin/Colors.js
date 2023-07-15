@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const { MauSac } = require('../../models');
+const { adminAuth } = require('../../middlewares/AuthAdmin');
 
 //show all colors
-router.get('/show-all', async (req, res) => {
+router.get('/show-all',adminAuth , async (req, res) => {
     const colors = await MauSac.findAll();
     try {
         res.status(200).json({ colors: colors })
@@ -15,7 +16,7 @@ router.get('/show-all', async (req, res) => {
 })
 
 //Phân trang
-router.get("/color", async (req, res) => {
+router.get("/color",adminAuth , async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
@@ -37,7 +38,7 @@ router.get("/color", async (req, res) => {
 
 
 //Add color
-router.post("/add-color", async (req, res) => {
+router.post("/add-color",adminAuth , async (req, res) => {
     const { tenMauSac, moTa } = req.body;
     await MauSac.create({ ten: tenMauSac, moTa: moTa });
     try {
@@ -51,7 +52,7 @@ router.post("/add-color", async (req, res) => {
 
 
 //update color
-router.put("/upload-color", async (req, res) => {
+router.put("/upload-color",adminAuth , async (req, res) => {
     const { id, tenMau, moTa } = req.body;
     await MauSac.update({ ten: tenMau, moTa: moTa }, { where: { id: id } });
     try {
