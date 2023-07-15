@@ -51,6 +51,10 @@ app.use("/favourite", favouriteRouter);
 const evaluateRouter = require('./routes/frontend/Evaluate');
 app.use("/evaluate", evaluateRouter);
 
+//trademarks
+const trademarkRouter = require('./routes/frontend/Trademarks');
+app.use("/trademark", trademarkRouter);
+
 //comment
 const commentRouter = require('./routes/frontend/Comment');
 app.use("/comment", commentRouter);

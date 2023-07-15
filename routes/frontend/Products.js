@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const { Op } = require('sequelize');
-const { SanPham, TheLoai, KhuyenMai, YeuThich, ThuongHieu, MauSac, ChatLieu } = require('../../models');
+const { Sequelize } = require('sequelize');
+const { SanPham, TheLoai, KhuyenMai, YeuThich, ThuongHieu, MauSac, ChatLieu, KieuDang } = require('../../models');
 const { validateToken } = require('../../middlewares/AuthMiddleware');
 
 router.get("/show-all", async (req, res) => {
@@ -36,7 +37,25 @@ router.get("/categoryList/:slug", async (req, res) => {
     try {
         const category = await TheLoai.findOne({ where: { ten: slug } });
         if (category) {
-            const product = await SanPham.findAll({ include: [{ model: TheLoai }, { model: KhuyenMai }], where: { TheLoaiId: category.id, trangThai: 1 } })
+            const product = await SanPham.findAll({
+                include: [
+                    {
+                        model: KhuyenMai,
+                    },
+                    {
+                        model: TheLoai,
+                    },
+                    {
+                        model: ThuongHieu,
+                    },
+                    {
+                        model: MauSac,
+                    },
+                    {
+                        model: ChatLieu,
+                    },
+                ], where: { TheLoaiId: category.id, trangThai: 1 }
+            })
             res.status(200).json({ products: product, categories: category })
         }
     }
@@ -53,7 +72,28 @@ router.get("/viewproductdetail/:category_slug/:product_slug", async (req, res) =
     const category = await TheLoai.findOne({ where: { ten: category_slug } });
     try {
         if (category) {
-            const product = await SanPham.findOne({ include: [{ model: TheLoai }, { model: KhuyenMai },{ model: MauSac },{ model: ChatLieu }], where: { TheLoaiId: category.id, id: product_slug, trangThai: 1 } })
+            const product = await SanPham.findOne({
+                include: [
+                    {
+                        model: KhuyenMai,
+                    },
+                    {
+                        model: TheLoai,
+                    },
+                    {
+                        model: ThuongHieu,
+                    },
+                    {
+                        model: MauSac,
+                    },
+                    {
+                        model: ChatLieu,
+                    },
+                    {
+                        model: KieuDang,
+                    },
+                ], where: { TheLoaiId: category.id, id: product_slug, trangThai: 1 }
+            })
             res.status(200).json({ products: product })
         }
     }
@@ -114,6 +154,77 @@ router.get('/search/:slug', async (req, res) => {
     }
 });
 
+router.post('/filter', async (req, res) => {
+    const value = req.body.value;
+    let products = await SanPham.findAll({
+        include: [
+            {
+                model: KhuyenMai,
+            },
+            {
+                model: TheLoai,
+            },
+            {
+                model: ThuongHieu,
+            },
+            {
+                model: MauSac,
+            },
+            {
+                model: ChatLieu,
+            },
+        ],
+    });
+    if (value['theloai'] !== undefined) {
+        products = products.filter((product) =>
+            product.TheLoai.id == value['theloai']
+        );
+    }
+    if (value['thuonghieu'] !== undefined) {
+        products = products.filter((product) =>
+            product.ThuongHieuId == value['thuonghieu']
+        );
+    }
+    if (value['chatlieu'] !== undefined) {
+        products = products.filter((product) =>
+            product.ChatLieuId == value['chatlieu']
+        );
+    }
+    if (value['mausac'] !== undefined) {
+        products = products.filter((product) =>
+            product.MauSacId == value['mausac']
+        );
+    }
+    if (value['gioitinh'] !== undefined) {
+        products = products.filter(
+            (product) => product.gioiTinh == value['gioitinh']
+        );
+    }
+    if (value['kieudang'] !== undefined) {
+        products = products.filter((product) =>
+            product.KieuDangId == value['kieudang']
+        );
+    }
+    if (value['sotien'] !== undefined) {
+        products = products.filter((product) =>
+            product.giaGiam <= value['sotien']
+        );
+    }
+    return res.json({ products });
+})
 
+router.get('/priceminmax', async (req, res) => {
+    const minMaxTongTien = await SanPham.findOne({
+        attributes: [
+            [Sequelize.fn('min', Sequelize.col('giaGiam')), 'minTongTien'],
+            [Sequelize.fn('max', Sequelize.col('giaGiam')), 'maxTongTien'],
+        ],
+    });
+    console.log(minMaxTongTien)
+    res.json({
+        minMaxTongTien
+    });
+
+})
 
 module.exports = router;
