@@ -6,7 +6,26 @@ const { SanPham, TheLoai, KhuyenMai, YeuThich, ThuongHieu, MauSac, ChatLieu, Kie
 const { validateToken } = require('../../middlewares/AuthMiddleware');
 
 router.get("/show-all", async (req, res) => {
-    const products = await SanPham.findAll({ include: [{ model: TheLoai }, { model: KhuyenMai }], where: { trangThai: 1 } });
+    const products = await SanPham.findAll({  include: [
+        {
+            model: KhuyenMai,
+        },
+        {
+            model: TheLoai,
+        },
+        {
+            model: ThuongHieu,
+        },
+        {
+            model: MauSac,
+        },
+        {
+            model: ChatLieu,
+        },
+        {
+            model: KieuDang,
+        },
+    ], where: { trangThai: 1 } });
     if (products) {
         res.json({ products: products, status: 200 })
     }
